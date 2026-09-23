@@ -1,0 +1,16 @@
+*.iml
+.gradle/
+/local.properties
+.idea/
+.DS_Store
+build/
+/app/build/
+/captures
+.externalNativeBuild/
+.cxx/
+*.apk
+*.aab
+
+# Gradle wrapper jar is intentionally not committed - see README.
+# CI generates it; for local use, let Android Studio generate it on first
+# open, or run: gradle wrapper --gradle-version 8.13
