@@ -20,8 +20,24 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
+      # ubuntu-latest already ships with an Android SDK (cmdline-tools)
+      # pre-installed at $ANDROID_HOME. We used to set it up via
+      # android-actions/setup-android@v3, but with no explicit `packages`
+      # input that action's last step always runs `sdkmanager tools` -
+      # installing the legacy standalone "tools" package, which Google
+      # removed from the SDK repository years ago. That failed the whole
+      # job. This step just makes sure licenses are accepted on the
+      # SDK that's already there; Gradle/AGP auto-download whatever
+      # specific platform/build-tools the build itself needs.
+      - name: Accept Android SDK licenses
+        run: |
+          SDK_ROOT="${ANDROID_HOME:-/usr/local/lib/android/sdk}"
+          SDKMANAGER=$(find "$SDK_ROOT/cmdline-tools" -maxdepth 3 -name sdkmanager -type f 2>/dev/null | head -1)
+          if [ -n "$SDKMANAGER" ]; then
+            yes | "$SDKMANAGER" --licenses > /dev/null || true
+          else
+            echo "sdkmanager not found under $SDK_ROOT/cmdline-tools - relying on Gradle's own SDK auto-download."
+          fi
 
       - name: Set up Gradle 8.13
         uses: gradle/actions/setup-gradle@v6
